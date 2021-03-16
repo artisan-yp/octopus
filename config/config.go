@@ -1,17 +1,43 @@
 package config
 
-const CONFIG_PATH = "CONFIG_PATH"
+import (
+	"log"
+	// NOTE: Import these packages while using them, for reducing program size.
+	// To register jsonparser
+	// _ "github.com/k8s-practice/octopus/config/parser/jsonparser"
+	// To register tomlparser
+	// _ "github.com/k8s-practice/octopus/config/parser/tomlparser"
+	// To register yamlparser
+	// _ "github.com/k8s-practice/octopus/config/parser/yamlparser"
+	// To register localfile datasource
+	// _ "github.com/k8s-practice/octopus/config/localfile"
+)
 
-// Configurator gets or sets k/v.
-type Configurator interface {
-	// Gets value by key, return nil if miss the key.
+type Config interface {
 	Get(key string) interface{}
-	// Set value by key, if the key is empty will have no effects.
 	Set(key string, value interface{})
 }
 
-// Builder creates a Configurator.
-type Builder interface {
-	Build() (Configurator, error)
-	Name() string
+func T() Target {
+	return make(target)
+}
+
+func New(targets ...Target) Config {
+	c := &config{
+		delimiter: DEFAULT_KEY_DELIMITER,
+	}
+
+	for _, t := range targets {
+		if builder, ok := SearchBuilder(t.Scheme()); ok {
+			if ds, err := builder.Build(t); err != nil {
+				log.Panic(err)
+			} else {
+				c.addDataSource(ds)
+			}
+		} else {
+			log.Panicf("Unsupported config scheme [%s].", t.Scheme())
+		}
+	}
+
+	return c
 }
