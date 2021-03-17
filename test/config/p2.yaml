@@ -1,0 +1,4 @@
+database:
+  type: "mysql"
+  addr: "172.168.0.2"
+  port: 3307

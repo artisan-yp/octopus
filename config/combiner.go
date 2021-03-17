@@ -1,9 +1,9 @@
 package config
 
 import (
-	"errors"
 	"log"
 	"sort"
+	"strings"
 	"sync"
 )
 
@@ -23,9 +23,9 @@ type config struct {
 	// delimiter separates the nested key.
 	delimiter string
 
-	// override stores user settings.
+	// override stores user settings with the highest priority.
 	override sync.Map
-	// defaults stores default settings.
+	// defaults stores default settings with the lowest priority.
 	defaults sync.Map
 
 	// dss is an unique priority queue of DataSource
@@ -33,12 +33,39 @@ type config struct {
 	dss uniquePriorityQueue
 }
 
+// Get gets value by key, it's thread safe.
 func (c *config) Get(key string) interface{} {
-	return &struct{}{}
+	// Search in the highest priority map.
+	if v, ok := c.override.Load(key); ok {
+		return v
+	}
+
+	// Search in datasource by priority.
+	path := strings.Split(key, c.delimiter)
+	for _, ds := range c.dss {
+		if v := ds.datasource.Get(path); v != nil {
+			return v
+		}
+	}
+
+	// Search in the lowest priority map.
+	if v, ok := c.defaults.Load(key); ok {
+		return v
+	}
+
+	return nil
 }
 
 func (c *config) Set(key string, value interface{}) {
+	if value != nil {
+		c.override.Store(key, value)
+	} else {
+		c.override.Delete(key)
+	}
+}
 
+func (c *config) SetDefault(key string, value interface{}) {
+	c.defaults.Store(key, value)
 }
 
 // addDataSource inserts an datasource in upq.
@@ -47,9 +74,7 @@ func (c *config) addDataSource(d DataSource) {
 		priority:   d.Priority(),
 		datasource: d,
 	}
-	if err := c.dss.insert(i); err != nil {
-		log.Panic(err)
-	}
+	c.dss = c.dss.insert(i)
 }
 
 type item struct {
@@ -60,13 +85,13 @@ type item struct {
 type uniquePriorityQueue []*item
 
 // insert inserts an item in an uniquePriorityQueue.
-// If the same priority already exists in the uniquePriorityQueue, returns error.
-func (upq uniquePriorityQueue) insert(it *item) error {
+// If the same priority already exists in the uniquePriorityQueue, panic.
+func (upq uniquePriorityQueue) insert(it *item) uniquePriorityQueue {
 	idx := sort.Search(len(upq), func(i int) bool {
 		return upq[i].priority >= it.priority
 	})
 	if idx < len(upq) && upq[idx].priority == it.priority {
-		return errors.New("The same priority already exists.")
+		log.Panic("The same priority already exists.")
 	}
 
 	upq = append(upq, it)
@@ -74,7 +99,7 @@ func (upq uniquePriorityQueue) insert(it *item) error {
 		return upq[i].priority < upq[j].priority
 	})
 
-	return nil
+	return upq
 }
 
 // Observer watch change happens on the datasource.

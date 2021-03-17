@@ -13,9 +13,15 @@ import (
 	// _ "github.com/k8s-practice/octopus/config/localfile"
 )
 
+// NOTE: All functions must be thread safe.
 type Config interface {
+	// Get gets value by key.
 	Get(key string) interface{}
+	// Set sets key/value with the highest priority.
+	// If the value is nil, it means that key/value is removed from the highest priority.
 	Set(key string, value interface{})
+	// SetDefault sets key/value with the lowest priority.
+	SetDefault(key string, value interface{})
 }
 
 func T() Target {
@@ -28,14 +34,14 @@ func New(targets ...Target) Config {
 	}
 
 	for _, t := range targets {
-		if builder, ok := SearchBuilder(t.Scheme()); ok {
+		if builder, ok := SearchBuilder(t.Scheme()); !ok {
+			log.Panicf("Unsupported config scheme [%s].", t.Scheme())
+		} else {
 			if ds, err := builder.Build(t); err != nil {
 				log.Panic(err)
 			} else {
 				c.addDataSource(ds)
 			}
-		} else {
-			log.Panicf("Unsupported config scheme [%s].", t.Scheme())
 		}
 	}
 

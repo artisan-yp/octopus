@@ -15,14 +15,13 @@ func RegisterBuilder(b Builder) {
 		log.Panicf("Already regestered config scheme [%s].", b.Scheme())
 	}
 
-	log.Println(b.Scheme(), b)
+	log.Printf("Register datasource scheme [%s].", b.Scheme())
 	builders[b.Scheme()] = b
 }
 
 // SearchBuilder searches the datasource builder from the datasource map.
 func SearchBuilder(scheme string) (Builder, bool) {
 	builder, ok := builders[scheme]
-	log.Println(scheme, ok)
 	return builder, ok
 }
 

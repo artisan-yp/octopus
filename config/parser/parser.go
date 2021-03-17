@@ -31,7 +31,11 @@ func Register(b Builder) {
 	}
 }
 
-func ParseConfig(format string, data []byte, v interface{}) error {
+// Parse uses registered parser to parse the coming data.
+// - format is used to search parser.
+// - data is the data need to parse.
+// - v is output parameter.
+func Parse(format string, data []byte, v interface{}) error {
 	if builder, ok := parsers[strings.ToLower(format)]; ok {
 		return builder.Build().Parse(data, v)
 	}

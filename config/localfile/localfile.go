@@ -7,6 +7,7 @@ import (
 
 	"github.com/k8s-practice/octopus/config"
 	cp "github.com/k8s-practice/octopus/config/parser"
+	cs "github.com/k8s-practice/octopus/internal/configsearch"
 )
 
 const (
@@ -58,28 +59,28 @@ type datasource struct {
 	config atomic.Value
 }
 
-func (d *datasource) Load() error {
-	data, err := os.ReadFile(d.filepath)
-	if err != nil {
+func (d *datasource) Load() (err error) {
+	if data, err := os.ReadFile(d.filepath); err != nil {
 		log.Println(err)
-		return err
+	} else {
+		config := make(map[string]interface{})
+		if err = cp.Parse(d.format, data, &config); err != nil {
+			log.Println(err)
+		} else {
+			d.config.Store(config)
+		}
 	}
 
-	config := make(map[string]interface{})
-	err = cp.ParseConfig(d.format, data, &config)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	d.config.Store(config)
-
-	return nil
+	return err
 }
 
 func (d *datasource) Get(path []string) interface{} {
-	//return configsearch.SearchPathInMap(d.config, path)
-	return ""
+	m := d.config.Load()
+	if m == nil {
+		return nil
+	}
+
+	return cs.SearchPathInMap(m.(map[string]interface{}), path)
 }
 
 func (d *datasource) Priority() int32 {
