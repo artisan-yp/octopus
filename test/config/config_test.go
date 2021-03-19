@@ -10,7 +10,8 @@ import (
 	"github.com/k8s-practice/octopus/config/parser/jsonparser"
 	"github.com/k8s-practice/octopus/config/parser/tomlparser"
 	"github.com/k8s-practice/octopus/config/parser/yamlparser"
-	"gotest.tools/assert"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
