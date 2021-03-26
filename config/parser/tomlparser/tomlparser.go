@@ -2,7 +2,7 @@ package tomlparser
 
 import (
 	"github.com/BurntSushi/toml"
-	cp "github.com/k8s-practice/octopus/config/parser"
+	"github.com/k8s-practice/octopus/config/parser"
 )
 
 const (
@@ -19,16 +19,16 @@ func (b *builder) Format() []string {
 	return []string{format}
 }
 
-func (b *builder) Build() cp.Parser {
-	return &parser{}
+func (b *builder) Build() parser.Parser {
+	return &tomlParser{}
 }
 
-type parser struct{}
+type tomlParser struct{}
 
-func (p *parser) Parse(data []byte, v interface{}) error {
+func (p *tomlParser) Parse(data []byte, v interface{}) error {
 	return toml.Unmarshal(data, v)
 }
 
 func init() {
-	cp.Register(&builder{})
+	parser.Register(&builder{})
 }

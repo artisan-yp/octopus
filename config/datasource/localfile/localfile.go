@@ -5,9 +5,9 @@ import (
 	"os"
 	"sync/atomic"
 
-	"github.com/k8s-practice/octopus/config"
-	cp "github.com/k8s-practice/octopus/config/parser"
-	cs "github.com/k8s-practice/octopus/internal/configsearch"
+	"github.com/k8s-practice/octopus/config/datasource"
+	"github.com/k8s-practice/octopus/config/parser"
+	"github.com/k8s-practice/octopus/internal/configsearch"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 )
 
 func init() {
-	config.RegisterBuilder(&builder{})
+	datasource.Register(&builder{})
 }
 
 func Scheme() string {
@@ -24,10 +24,9 @@ func Scheme() string {
 
 type builder struct{}
 
-// Build builds a config.DataSource by config.Target.
-func (b *builder) Build(t config.Target) (config.DataSource, error) {
-	d := &datasource{
-		priority: t.Priority(),
+// Build builds a datasource.DataSource by datasource.Target.
+func (b *builder) Build(t datasource.Target) (datasource.DataSource, error) {
+	d := &localfile{
 		filepath: t.Path(),
 		format:   t.Format(),
 	}
@@ -41,7 +40,7 @@ func (b *builder) Scheme() string {
 }
 
 // datasource implements config.Configurator interface.
-type datasource struct {
+type localfile struct {
 	// filepath is the path of the datasource file,
 	// absolute or relative path.
 	filepath string
@@ -50,21 +49,17 @@ type datasource struct {
 	// it could be json, toml or yaml, etc.
 	format string
 
-	// priority is the priority of configuration from this datasource.
-	// The higher the value, the higher the priority.
-	priority int32
-
 	// config contains all configurations.
 	// Value store type is map[string]interface{}
 	config atomic.Value
 }
 
-func (d *datasource) Load() (err error) {
+func (d *localfile) Load() (err error) {
 	if data, err := os.ReadFile(d.filepath); err != nil {
 		log.Println(err)
 	} else {
 		config := make(map[string]interface{})
-		if err = cp.Parse(d.format, data, &config); err != nil {
+		if err = parser.Parse(d.format, data, &config); err != nil {
 			log.Println(err)
 		} else {
 			d.config.Store(config)
@@ -74,21 +69,17 @@ func (d *datasource) Load() (err error) {
 	return err
 }
 
-func (d *datasource) Get(path []string) interface{} {
+func (d *localfile) Get(path []string) interface{} {
 	m := d.config.Load()
 	if m == nil {
 		return nil
 	}
 
-	return cs.SearchPathInMap(m.(map[string]interface{}), path)
-}
-
-func (d *datasource) Priority() int32 {
-	return d.priority
+	return configsearch.SearchPathInMap(m.(map[string]interface{}), path)
 }
 
 /*
-func (d *datasource) findConfigFile() (string, error) {
+func (d *localfile) findConfigFile() (string, error) {
 	for _, dir := range d.dirs {
 		// Don't care the target is a symlink or not.
 		filePath := path.Join(dir, d.fileName+"."+d.fileType)

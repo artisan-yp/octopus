@@ -1,7 +1,7 @@
 package yamlparser
 
 import (
-	cp "github.com/k8s-practice/octopus/config/parser"
+	"github.com/k8s-practice/octopus/config/parser"
 	"gopkg.in/yaml.v2"
 )
 
@@ -20,16 +20,16 @@ func (b *builder) Format() []string {
 	return []string{format, format_alias}
 }
 
-func (b *builder) Build() cp.Parser {
-	return &parser{}
+func (b *builder) Build() parser.Parser {
+	return &yamlParser{}
 }
 
-type parser struct{}
+type yamlParser struct{}
 
-func (p *parser) Parse(data []byte, v interface{}) error {
+func (p *yamlParser) Parse(data []byte, v interface{}) error {
 	return yaml.Unmarshal(data, v)
 }
 
 func init() {
-	cp.Register(&builder{})
+	parser.Register(&builder{})
 }

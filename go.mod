@@ -8,6 +8,10 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
+	google.golang.org/grpc v1.36.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
+	k8s.io/api v0.20.5 // indirect
+	k8s.io/apimachinery v0.20.5 // indirect
+	k8s.io/client-go v0.20.5 // indirect
 )

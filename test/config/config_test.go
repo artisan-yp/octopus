@@ -7,11 +7,10 @@ import (
 
 	// NOTE: Import these packages while using them, for reducing program size.
 	"github.com/k8s-practice/octopus/config"
-	"github.com/k8s-practice/octopus/config/localfile"
+	"github.com/k8s-practice/octopus/config/datasource/localfile"
 	"github.com/k8s-practice/octopus/config/parser/jsonparser"
 	"github.com/k8s-practice/octopus/config/parser/tomlparser"
 	"github.com/k8s-practice/octopus/config/parser/yamlparser"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,35 +19,34 @@ func init() {
 }
 
 func TestNewConfig(t *testing.T) {
-	c := config.New(
+	c1 := config.New(
 		config.T().WithScheme(localfile.Scheme()).
-			WithPriority(1).
 			WithPath("./p1.toml").
 			WithFormat(tomlparser.Format()),
+	)
+
+	c2 := config.New(
 		config.T().WithScheme(localfile.Scheme()).
-			WithPriority(2).
 			WithPath("./p2.yaml").
 			WithFormat(yamlparser.Format()),
+	)
+
+	c3 := config.New(
 		config.T().WithScheme(localfile.Scheme()).
-			WithPriority(3).
 			WithPath("./p3.json").
 			WithFormat(jsonparser.Format()),
 	)
 
-	assert.Equal(t, config.GetString(c, "database.addr"), "172.168.0.1",
+	c := config.MultiConfig(c1, c2, c3)
+
+	assert.Equal(t, config.GetString(c, "database.info.addr"), "172.168.0.1",
 		"p1 database.addr should be 172.168.0.1")
 
-	c.Set("database.addr", "127.0.0.1")
-	assert.Equal(t, config.GetString(c, "database.addr"), "127.0.0.1",
-		"after set, database.addr should be 127.0.0.1")
+	assert.Equal(t, config.GetInt(c, "database.info.port"), 0,
+		"p1 database.port should be zero value.")
 
-	c.Set("database.addr", nil)
-	assert.Equal(t, config.GetString(c, "database.addr"), "172.168.0.1",
-		"after delete, database.addr should be 172.168.0.1")
-
-	assert.Equal(t, config.GetInt(c, "database.port"), 3307,
-		"p2 database.port should be 3307")
-
-	assert.True(t, true, config.GetTime(c, "database.time").
+	assert.True(t, true, config.GetTime(c, "database.info.time").
 		Equal(time.Date(2021, time.March, 3, 19, 14, 15, 16, time.UTC)))
+
+	assert.True(t, true, config.GetInt(c, "database.port"), 3307)
 }
