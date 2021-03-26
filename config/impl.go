@@ -1,9 +1,7 @@
 package config
 
 import (
-	"log"
 	"strings"
-	"sync/atomic"
 
 	"github.com/k8s-practice/octopus/config/datasource"
 	"github.com/k8s-practice/octopus/utils/cast"
@@ -26,48 +24,35 @@ func T() datasource.Target {
 	return make(target)
 }
 
-func New(targets ...datasource.Target) Config {
-	c := &config{}
-
-	for _, t := range targets {
-		if err := c.AddTarget(t); err != nil {
-			log.Panic(err)
-		}
+func New(t datasource.Target) (Config, error) {
+	if ds, err := datasource.Build(t); err != nil {
+		return nil, err
+	} else {
+		return &config{ds: ds}, nil
 	}
-
-	return c
 }
 
 // config implements the interface of Config.
 type config struct {
-	// datasource contains impl of the datasource.DataSource.
-	datasource atomic.Value
+	ds datasource.DataSource
 }
 
 // Get gets value by key, it's thread safe.
 func (c *config) Get(key string) interface{} {
-	// Search in the remote datasource if it exists.
-	if v := c.datasource.Load(); v != nil {
-		if i := v.(datasource.DataSource).Get([]string{key}); i != nil {
-			return i
-		}
+	if v := c.ds.Get([]string{key}); v != nil {
+		return v
+	}
 
-		path := strings.Split(key, delim)
-		if i := v.(datasource.DataSource).Get(path); i != nil {
-			return i
-		}
+	path := strings.Split(key, delim)
+	if len(path) == 1 {
+		return nil
+	}
+
+	if v := c.ds.Get(path); v != nil {
+		return v
 	}
 
 	return nil
-}
-
-func (c *config) AddTarget(t datasource.Target) error {
-	ds, err := datasource.Build(t)
-	if err == nil {
-		c.datasource.Store(ds)
-	}
-
-	return err
 }
 
 // target implements the interface of datasource.Target.

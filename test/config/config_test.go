@@ -19,23 +19,26 @@ func init() {
 }
 
 func TestNewConfig(t *testing.T) {
-	c1 := config.New(
+	c1, err := config.New(
 		config.T().WithScheme(localfile.Scheme()).
 			WithPath("./p1.toml").
 			WithFormat(tomlparser.Format()),
 	)
+	assert.Equal(t, err, nil, "Must be successful.")
 
-	c2 := config.New(
+	c2, err := config.New(
 		config.T().WithScheme(localfile.Scheme()).
 			WithPath("./p2.yaml").
 			WithFormat(yamlparser.Format()),
 	)
+	assert.Equal(t, err, nil, "Must be successful.")
 
-	c3 := config.New(
+	c3, err := config.New(
 		config.T().WithScheme(localfile.Scheme()).
 			WithPath("./p3.json").
 			WithFormat(jsonparser.Format()),
 	)
+	assert.Equal(t, err, nil, "Must be successful.")
 
 	c := config.MultiConfig(c1, c2, c3)
 

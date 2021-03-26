@@ -1,7 +1,6 @@
 package localfile
 
 import (
-	"log"
 	"os"
 	"sync/atomic"
 
@@ -39,7 +38,7 @@ func (b *builder) Scheme() string {
 	return Scheme()
 }
 
-// datasource implements config.Configurator interface.
+// localfile implements the interface of datasource.DataSource.
 type localfile struct {
 	// filepath is the path of the datasource file,
 	// absolute or relative path.
@@ -54,17 +53,17 @@ type localfile struct {
 	config atomic.Value
 }
 
-func (d *localfile) Load() (err error) {
-	if data, err := os.ReadFile(d.filepath); err != nil {
-		log.Println(err)
-	} else {
-		config := make(map[string]interface{})
-		if err = parser.Parse(d.format, data, &config); err != nil {
-			log.Println(err)
-		} else {
-			d.config.Store(config)
-		}
+func (d *localfile) Load() error {
+	data, err := os.ReadFile(d.filepath)
+	if err != nil {
+		return err
 	}
+
+	config := make(map[string]interface{})
+	if err = parser.Parse(d.format, data, &config); err != nil {
+		return err
+	}
+	d.config.Store(config)
 
 	return err
 }

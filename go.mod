@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/google/go-cmp v0.5.5 // indirect
+	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
