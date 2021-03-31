@@ -56,8 +56,8 @@ func loadConfig() config.Config {
 		format = strings.ToLower(strings.TrimPrefix(suffix, "."))
 	}
 
-	switch format {
-	case tomlparser.Format():
+	switch {
+	case tomlparser.IsMatchFormat(format):
 		if c, err := config.New(config.T().WithScheme(localfile.Scheme()).
 			WithPath(*configfile).
 			WithFormat(format)); err != nil {
@@ -65,7 +65,7 @@ func loadConfig() config.Config {
 		} else {
 			return c
 		}
-	case yamlparser.Format():
+	case yamlparser.IsMatchFormat(format):
 		if c, err := config.New(config.T().WithScheme(localfile.Scheme()).
 			WithPath(*configfile).
 			WithFormat(format)); err != nil {
@@ -73,7 +73,7 @@ func loadConfig() config.Config {
 		} else {
 			return c
 		}
-	case jsonparser.Format():
+	case jsonparser.IsMatchFormat(format):
 		if c, err := config.New(config.T().WithScheme(localfile.Scheme()).
 			WithPath(*configfile).
 			WithFormat(format)); err != nil {

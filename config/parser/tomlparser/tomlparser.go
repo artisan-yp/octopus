@@ -13,6 +13,10 @@ func Format() string {
 	return format
 }
 
+func IsMatchFormat(fmt string) bool {
+	return fmt == format
+}
+
 type builder struct{}
 
 func (b *builder) Format() []string {
