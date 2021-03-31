@@ -20,8 +20,8 @@ func init() {
 }
 
 func main() {
-	conf := loadConfig()
-	o := octopus.New().WithConfig(conf)
+	cfg := loadConfig()
+	o := octopus.New().WithConfig(cfg)
 
 	var wrapper Wrapper
 	if err := o.Load("", &wrapper); err != nil {
