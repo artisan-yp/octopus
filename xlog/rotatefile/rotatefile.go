@@ -19,19 +19,22 @@ const (
 
 	DEFAULT_TIME_LAYOUT = "20060102-030405"
 
-	DEFAULT_MAX_SIZE = 1024 * 1024 * 2
-	DEFAULT_MAX_AGE  = time.Hour * 24 * 15
-	DEFAULT_PEROID   = 24 * time.Hour
+	DEFAULT_MAX_SIZE  = 1024 * 1024 * 256
+	DEFAULT_MAX_COUNT = 15
+	DEFAULT_MAX_AGE   = time.Hour * 24 * 15
+	DEFAULT_PEROID    = 24 * time.Hour
 )
 
 func New(biz, severity string, options ...Option) (*RotateFile, error) {
 	rf := &RotateFile{
-		dir:      DEFAULT_DIR,
-		biz:      biz,
-		severity: severity,
-		clock:    Local,
-		peroid:   DEFAULT_PEROID,
-		maxSize:  DEFAULT_MAX_SIZE,
+		dir:        DEFAULT_DIR,
+		biz:        biz,
+		severity:   severity,
+		clock:      Local,
+		peroid:     DEFAULT_PEROID,
+		maxSize:    DEFAULT_MAX_SIZE,
+		maxCount:   DEFAULT_MAX_COUNT,
+		timeLayout: DEFAULT_TIME_LAYOUT,
 	}
 
 	rf.withOption(options...)
@@ -79,7 +82,6 @@ type RotateFile struct {
 func (rf *RotateFile) Write(p []byte) (int, error) {
 	now := rf.clock.Now()
 	if rf.curSize+int64(len(p)) > rf.maxSize || now.After(rf.nextRotateTime) {
-		log.Println("rotate now.")
 		if err := rf.rotate(now); err != nil {
 			log.Println(err)
 			return 0, err

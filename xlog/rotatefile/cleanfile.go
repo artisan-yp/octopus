@@ -42,7 +42,6 @@ func cleanFile(dir, filePrefix string,
 	if maxAge > 0 {
 		fileSlice = CleanByAge(fileSlice, t, maxAge)
 	}
-
 }
 
 func collectFile(dir, filePrefix string) FileSlice {
@@ -60,7 +59,7 @@ func collectFile(dir, filePrefix string) FileSlice {
 			// ignore director
 			fileinfo.IsDir() ||
 			// ignore symlink
-			(fileinfo.Mode()&fs.ModeSymlink) == 0 {
+			(fileinfo.Mode()&fs.ModeSymlink) != 0 {
 			continue
 		}
 

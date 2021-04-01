@@ -248,7 +248,7 @@ func (l *logger) formatHeader(s severity, file string, line int) *buffer {
 
 	buf.tmp[0] = ':'
 	n := buf.someDigits(1, line)
-	buf.tmp[n+1] = ']'
+	buf.tmp[n+1] = ':'
 	buf.tmp[n+2] = ' '
 	buf.Write(buf.tmp[:n+3])
 
@@ -280,18 +280,18 @@ func (l *logger) exit(err error) {
 	os.Exit(2)
 }
 
-func Biz(biz string) DepthLogger {
-	if logger, ok := cache[biz]; ok {
+func Component(name string) DepthLogger {
+	if logger, ok := cache[name]; ok {
 		return logger
 	}
 
 	l := &logger{
-		biz: biz,
+		biz: name,
 		bufPool: sync.Pool{
 			New: func() interface{} { return new(buffer) },
 		},
 	}
-	cache[biz] = l
+	cache[name] = l
 
 	return l
 }

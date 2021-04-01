@@ -6,12 +6,12 @@ import (
 	"github.com/k8s-practice/octopus/xlog"
 )
 
-var framelog xlog.DepthLogger
-var applog xlog.DepthLogger
+var framelog xlog.Logger
+var applog xlog.Logger
 
 func init() {
-	framelog = xlog.Biz("frame")
-	applog = xlog.Biz("myapp")
+	framelog = xlog.Component("frame")
+	applog = xlog.Component("myapp")
 }
 
 func main() {
