@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	scheme = "kubapi"
+	scheme = "kubeapi"
 )
 
 var (
@@ -62,7 +62,7 @@ func (b *builder) Build(target resolver.Target, cc resolver.ClientConn,
 		}
 	}
 
-	if err = kubectl.Subscribe(r.namespace, r.endpoint,
+	if err = kubectl.Subscribe(r.namespace, "endpoints",
 		fields.OneTermEqualSelector("metadata.name", endpoint),
 		r.stopWatch, callback); err != nil {
 		return nil, err
