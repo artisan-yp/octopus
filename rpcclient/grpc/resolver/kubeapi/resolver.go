@@ -27,6 +27,10 @@ func init() {
 	resolver.Register(&builder{})
 }
 
+func GetScheme() string {
+	return scheme
+}
+
 type builder struct{}
 
 // Build creates and starts a Kubernetes ApiServer resolver
