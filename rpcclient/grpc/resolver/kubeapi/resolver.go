@@ -3,6 +3,7 @@ package kubeapi
 import (
 	"context"
 	"errors"
+	"log"
 	"net"
 	"strings"
 	"sync"
@@ -50,6 +51,7 @@ func (b *builder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	callback := func(i interface{}) {
+		log.Println("sssssssssssssss")
 		select {
 		case r.endpoints <- i.([]string):
 		case <-r.ctx.Done():
@@ -57,7 +59,8 @@ func (b *builder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	if err = kubectl.Subscribe(r.namespace, r.endpoint,
-		fields.Everything(), r.stopWatch, callback); err != nil {
+		fields.OneTermEqualSelector("metadata.name", endpoint),
+		r.stopWatch, callback); err != nil {
 		return nil, err
 	}
 
@@ -103,6 +106,8 @@ func (r *kubeapiResolver) watcher() {
 		case <-r.ctx.Done():
 			return
 		case endpoints := <-r.endpoints:
+			log.Println("bbbbbbbbbbbbbbbbbbbb")
+			log.Println(endpoints)
 			var addrs []resolver.Address
 			for i := 0; i < len(endpoints); i++ {
 				addrs = append(addrs,
