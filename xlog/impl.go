@@ -51,6 +51,8 @@ type logger struct {
 
 	// hold buffer
 	bufPool sync.Pool
+
+	stop chan struct{}
 }
 
 const d = 1
@@ -290,8 +292,23 @@ func Component(name string) DepthLogger {
 		bufPool: sync.Pool{
 			New: func() interface{} { return new(buffer) },
 		},
+		stop: make(chan struct{}, 0),
 	}
 	cache[name] = l
+
+	go func() {
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				l.Sync()
+			case <-l.stop:
+				l.Sync()
+				break
+			}
+		}
+	}()
 
 	return l
 }

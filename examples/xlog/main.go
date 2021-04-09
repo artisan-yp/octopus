@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	"github.com/k8s-practice/octopus/xlog"
 )
@@ -22,7 +23,7 @@ func main() {
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func() {
-			for i := 0; i < 20000; i++ {
+			for i := 0; i < 10000; i++ {
 				framelog.Info(123, "abcaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "测试123abc")
 				framelog.Warning(666, "999", "bangbangbang")
 				framelog.Errorf("abc %d %s", 777, "nnn")
@@ -33,4 +34,10 @@ func main() {
 	}
 
 	wg.Wait()
+
+	for i := 0; i < 10; i++ {
+		framelog.Errorf("test error:%d", i)
+		time.Sleep(1 * time.Second)
+	}
+
 }
