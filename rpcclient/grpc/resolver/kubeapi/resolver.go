@@ -50,7 +50,10 @@ func (b *builder) Build(target resolver.Target, cc resolver.ClientConn,
 	}
 
 	callback := func(i interface{}) {
-		r.endpoints <- i.([]string)
+		select {
+		case r.endpoints <- i.([]string):
+		case <-r.ctx.Done():
+		}
 	}
 
 	if err = kubectl.Subscribe(r.namespace, r.endpoint,
