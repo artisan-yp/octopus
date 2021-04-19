@@ -53,9 +53,15 @@ type logger struct {
 	bufPool sync.Pool
 
 	stop chan struct{}
+
+	alsoToStderr bool
 }
 
 const d = 1
+
+func (l *logger) WithAlsoToStderr(b bool) {
+	l.alsoToStderr = b
+}
 
 func (l *logger) InfoDepth(depth int, args ...interface{}) {
 	l.printDepth(infoLog, depth, args...)
@@ -131,8 +137,7 @@ func (l *logger) Sync() error {
 	return nil
 }
 
-func (l *logger) output(s severity, buf *buffer,
-	file string, line int, alsoToStderr bool) {
+func (l *logger) output(s severity, buf *buffer, file string, line int, alsoToStderr bool) {
 	l.fileMutex.Lock()
 
 	data := buf.Bytes()
@@ -176,7 +181,7 @@ func (l *logger) output(s severity, buf *buffer,
 func (l *logger) println(s severity, args ...interface{}) {
 	buf, file, line := l.header(s, 0)
 	fmt.Fprintln(buf, args...)
-	l.output(s, buf, file, line, false)
+	l.output(s, buf, file, line, l.alsoToStderr)
 }
 
 func (l *logger) print(s severity, args ...interface{}) {
@@ -189,7 +194,7 @@ func (l *logger) printf(s severity, format string, args ...interface{}) {
 	if buf.Bytes()[buf.Len()-1] != '\n' {
 		buf.WriteByte('\n')
 	}
-	l.output(s, buf, file, line, false)
+	l.output(s, buf, file, line, l.alsoToStderr)
 }
 
 func (l *logger) printDepth(s severity, depth int, args ...interface{}) {
@@ -198,7 +203,7 @@ func (l *logger) printDepth(s severity, depth int, args ...interface{}) {
 	if buf.Bytes()[buf.Len()-1] != '\n' {
 		buf.WriteByte('\n')
 	}
-	l.output(s, buf, file, line, false)
+	l.output(s, buf, file, line, l.alsoToStderr)
 }
 
 func (l *logger) header(s severity, depth int) (*buffer, string, int) {
