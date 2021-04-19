@@ -20,6 +20,7 @@ type Logger interface {
 	// V reports whether verbosity level l is at least the requested verbose level.
 	V(l int) bool
 
+	WithAlsoToStderr(bool)
 	// sync buffer content.
 	Sync() error
 }
