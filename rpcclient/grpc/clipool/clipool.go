@@ -20,7 +20,7 @@ func New() *ClientPool {
 func (pool *ClientPool) Get(target string) (*grpc.ClientConn, error) {
 	{
 		pool.mu.RLock()
-		defer pool.mu.Unlock()
+		defer pool.mu.RUnlock()
 
 		if client, ok := pool.clients[target]; ok {
 			return client, nil
