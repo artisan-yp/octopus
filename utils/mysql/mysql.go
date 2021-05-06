@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/ratelimit"
 
 	"github.com/k8s-practice/octopus/utils/prometheus"
 )
@@ -31,6 +32,8 @@ type MysqlConnOpts struct {
 	monitor *prometheus.OpenPrometheus
 	metrics map[string]*prometheus.Metric
 
+	limiter ratelimit.Limiter
+
 	c *MysqlControl
 }
 
@@ -42,6 +45,8 @@ type MysqlDriverBasic struct {
 	Host     string
 	DB       string
 	Port     int
+
+	QPS *int
 }
 
 type MysqlControl struct {
@@ -189,6 +194,12 @@ func Register(info *MysqlDriverBasic, opts ...MysqlDriverOptFunc) (*MysqlControl
 		o(c.opts)
 	}
 
+	if info.QPS == nil {
+		c.opts.limiter = ratelimit.NewUnlimited()
+	} else {
+		c.opts.limiter = ratelimit.New(*info.QPS)
+	}
+
 	MysqlConnPools.Controls[info.Id] = c
 
 	return c, nil
@@ -214,4 +225,13 @@ func (c *MysqlControl) DataBase() string {
 	}
 
 	return c.info.DB
+}
+
+func (c *MysqlControl) Limit() *MysqlControl {
+	if c == nil {
+		return c
+	}
+
+	c.opts.limiter.Take()
+	return c
 }
