@@ -12,6 +12,7 @@ require (
 	github.com/prometheus/client_golang v1.10.0
 	github.com/stretchr/testify v1.7.0
 	github.com/thinkeridea/go-extend v1.3.2
+	go.uber.org/ratelimit v0.2.0
 	google.golang.org/grpc v1.36.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.21.0

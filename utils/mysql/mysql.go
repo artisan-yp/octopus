@@ -19,6 +19,8 @@ const (
 	defaultMaxConnLifeTime = 1 * time.Minute
 	mysqlInvokeMetric      = "mysql_invoke_total"
 	mysqlConnMetric        = "mysql_conn_status"
+
+	limitOpTimeOut = 10000 // 10s
 )
 
 type MysqlDriverOptFunc func(*MysqlConnOpts)
@@ -64,6 +66,10 @@ type MysqlControls struct {
 
 var (
 	MysqlConnPools MysqlControls
+
+	ErrArgsInvalid = errors.New("args invalid")
+
+	ErrTooManyRequest = errors.New("too many request gt specify qps")
 )
 
 func init() {
@@ -227,11 +233,15 @@ func (c *MysqlControl) DataBase() string {
 	return c.info.DB
 }
 
-func (c *MysqlControl) Limit() *MysqlControl {
+func (c *MysqlControl) Limit() (*MysqlControl, error) {
 	if c == nil {
-		return c
+		return c, ErrArgsInvalid
 	}
 
-	c.opts.limiter.Take()
-	return c
+	t := c.opts.limiter.Take()
+	if time.Until(t).Milliseconds() > limitOpTimeOut {
+		return c, ErrTooManyRequest
+	}
+
+	return c, nil
 }
