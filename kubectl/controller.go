@@ -29,7 +29,7 @@ const (
 	RESOURCE_ENDPOINTS = "endpoints"
 )
 
-type SubscribeFunc func(obj interface{})
+type SubscribeFunc func(name, obj interface{})
 
 type Controller struct {
 	indexer  cache.Indexer
@@ -227,7 +227,7 @@ func getObjectType(resource string) (r1.Object, error) {
 
 func (c *Controller) syncEndpoints(endpoints *v1.Endpoints) error {
 	if endpoints == nil {
-		c.callback(nil)
+		c.callback(nil, nil)
 		return nil
 	}
 
@@ -240,7 +240,7 @@ func (c *Controller) syncEndpoints(endpoints *v1.Endpoints) error {
 		}
 	}
 
-	c.callback(ips)
+	c.callback(endpoints.GetName(), ips)
 	return nil
 }
 

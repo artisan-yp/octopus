@@ -53,9 +53,9 @@ func (b *builder) Build(target resolver.Target, cc resolver.ClientConn,
 		stopWatch: make(chan struct{}, 0),
 	}
 
-	callback := func(i interface{}) {
+	callback := func(name, obj interface{}) {
 		select {
-		case r.endpoints <- i.([]string):
+		case r.endpoints <- obj.([]string):
 		case <-r.ctx.Done():
 		}
 	}

@@ -49,3 +49,13 @@ func (pool *ClientPool) Put(target string) (*grpc.ClientConn, error) {
 		return client, nil
 	}
 }
+
+func (pool *ClientPool) Del(target string) {
+	pool.mu.Lock()
+	defer pool.mu.Unlock()
+
+	if conn, ok := pool.clients[target]; ok {
+		delete(pool.clients, target)
+		conn.Close()
+	}
+}
