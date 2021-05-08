@@ -8,7 +8,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/ratelimit"
 
 	"github.com/k8s-practice/octopus/utils/prometheus"
 )
@@ -19,11 +18,14 @@ const (
 	defaultMaxConnLifeTime = 1 * time.Minute
 	mysqlInvokeMetric      = "mysql_invoke_total"
 	mysqlConnMetric        = "mysql_conn_status"
-
-	limitOpTimeOut = 10000 // 10s
 )
 
 type MysqlDriverOptFunc func(*MysqlConnOpts)
+
+type Limiter interface {
+	// user realize
+	Allow() error
+}
 
 type MysqlConnOpts struct {
 	maxOpenConns    int
@@ -34,7 +36,7 @@ type MysqlConnOpts struct {
 	monitor *prometheus.OpenPrometheus
 	metrics map[string]*prometheus.Metric
 
-	limiter ratelimit.Limiter
+	limiter Limiter // 限频器
 
 	c *MysqlControl
 }
@@ -47,8 +49,6 @@ type MysqlDriverBasic struct {
 	Host     string
 	DB       string
 	Port     int
-
-	QPS *int
 }
 
 type MysqlControl struct {
@@ -115,6 +115,12 @@ func WithPrometheus(p int) MysqlDriverOptFunc {
 		o.monitor = &prometheus.OpenPrometheus{Port: p}
 
 		o.initPrometheus()
+	}
+}
+
+func WithLimiter(l Limiter) MysqlDriverOptFunc {
+	return func(o *MysqlConnOpts) {
+		o.limiter = l
 	}
 }
 
@@ -200,12 +206,6 @@ func Register(info *MysqlDriverBasic, opts ...MysqlDriverOptFunc) (*MysqlControl
 		o(c.opts)
 	}
 
-	if info.QPS == nil {
-		c.opts.limiter = ratelimit.NewUnlimited()
-	} else {
-		c.opts.limiter = ratelimit.New(*info.QPS)
-	}
-
 	MysqlConnPools.Controls[info.Id] = c
 
 	return c, nil
@@ -225,23 +225,27 @@ func Conn(id string) *MysqlControl {
 	}
 }
 
+/*
+ * 带有用户自定义限制如qps控制的mysql链接
+ */
+func (c *MysqlControl) Conn() (*MysqlControl, error) {
+	if c == nil {
+		return c, ErrArgsInvalid
+	}
+
+	if c.opts != nil && c.opts.limiter != nil {
+		if err := c.opts.limiter.Allow(); err != nil {
+			return c, err
+		}
+	}
+
+	return c, nil
+}
+
 func (c *MysqlControl) DataBase() string {
 	if c == nil || c.info == nil {
 		return ""
 	}
 
 	return c.info.DB
-}
-
-func (c *MysqlControl) Limit() (*MysqlControl, error) {
-	if c == nil {
-		return c, ErrArgsInvalid
-	}
-
-	t := c.opts.limiter.Take()
-	if time.Until(t).Milliseconds() > limitOpTimeOut {
-		return c, ErrTooManyRequest
-	}
-
-	return c, nil
 }
