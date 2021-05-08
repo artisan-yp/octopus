@@ -228,7 +228,7 @@ func Conn(id string) *MysqlControl {
 /*
  * 带有用户自定义限制如qps控制的mysql链接
  */
-func (c *MysqlControl) Conn() (*MysqlControl, error) {
+func (c *MysqlControl) LimitConn() (*MysqlControl, error) {
 	if c == nil {
 		return c, ErrArgsInvalid
 	}
