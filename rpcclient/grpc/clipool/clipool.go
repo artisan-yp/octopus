@@ -18,14 +18,12 @@ func New() *ClientPool {
 }
 
 func (pool *ClientPool) Get(target string) (*grpc.ClientConn, error) {
-	{
-		pool.mu.RLock()
-		defer pool.mu.RUnlock()
-
-		if client, ok := pool.clients[target]; ok {
-			return client, nil
-		}
+	pool.mu.RLock()
+	if client, ok := pool.clients[target]; ok {
+		pool.mu.RUnlock()
+		return client, nil
 	}
+	pool.mu.RUnlock()
 
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
