@@ -5,19 +5,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/artisan-yp/go-rotatablezap"
-	"go.uber.org/zap"
+	"github.com/k8s-practice/octopus/xlog"
 )
 
-var sugar *zap.SugaredLogger
+var logger xlog.Logger
 
 func init() {
-	sugar = rotatablezap.New("TaskPool").Sugar()
+	logger = xlog.Component("TaskPool")
 }
 
-func SetLoggerHandler(logger *zap.SugaredLogger) {
-	if logger != nil {
-		sugar = logger
+func SetLoggerHandler(l xlog.DepthLogger) {
+	if l != nil {
+		logger = l
 	}
 }
 
@@ -43,7 +42,7 @@ func (pool *Pool) RunWithTimeOut(work Work, t time.Duration) error {
 	case pool.work <- work:
 		return nil
 	case <-poolDelay.C:
-		sugar.Infof("timeout ...")
+		logger.Infof("timeout ...")
 		return fmt.Errorf("too many work process, timeout...")
 	}
 }
@@ -56,7 +55,7 @@ func (pool *Pool) Shutdown() {
 }
 
 func New(maxGoroutines, chanSize int) *Pool {
-	sugar.Infof("pool: goroutines %d, chanSize: %d", maxGoroutines, chanSize)
+	logger.Infof("pool: goroutines %d, chanSize: %d", maxGoroutines, chanSize)
 
 	pool := Pool{
 		work: make(chan Work, chanSize),
