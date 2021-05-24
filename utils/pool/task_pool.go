@@ -1,13 +1,12 @@
 package pool
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/artisan-yp/go-rotatablezap"
 	"go.uber.org/zap"
-
-	errno "go.common.errno"
 )
 
 var sugar *zap.SugaredLogger
@@ -45,7 +44,7 @@ func (pool *Pool) RunWithTimeOut(work Work, t time.Duration) error {
 		return nil
 	case <-poolDelay.C:
 		sugar.Infof("timeout ...")
-		return errno.DealTimeoutErr
+		return fmt.Errorf("too many work process, timeout...")
 	}
 }
 
