@@ -207,7 +207,8 @@ func (l *logger) printDepth(s severity, depth int, args ...interface{}) {
 }
 
 func (l *logger) header(s severity, depth int) (*buffer, string, int) {
-	_, file, line, ok := runtime.Caller(3 + depth)
+	fc := "???"
+	pc, file, line, ok := runtime.Caller(3 + depth)
 	if !ok {
 		file = "???"
 		line = 0
@@ -216,12 +217,16 @@ func (l *logger) header(s severity, depth int) (*buffer, string, int) {
 		if slash > 0 {
 			file = file[slash+1:]
 		}
+
+		if Func := runtime.FuncForPC(pc); Func != nil {
+			fc = Func.Name()
+		}
 	}
 
-	return l.formatHeader(s, file, line), file, line
+	return l.formatHeader(s, file, line, fc), file, line
 }
 
-func (l *logger) formatHeader(s severity, file string, line int) *buffer {
+func (l *logger) formatHeader(s severity, file string, line int, fc string) *buffer {
 	if line < 0 {
 		line = 0
 	}
@@ -256,8 +261,9 @@ func (l *logger) formatHeader(s severity, file string, line int) *buffer {
 	buf.tmp[0] = ':'
 	n := buf.someDigits(1, line)
 	buf.tmp[n+1] = ':'
-	buf.tmp[n+2] = ' '
-	buf.Write(buf.tmp[:n+3])
+	buf.Write(buf.tmp[:n+2])
+
+	buf.WriteString("[" + fc + "] ")
 
 	return buf
 }
