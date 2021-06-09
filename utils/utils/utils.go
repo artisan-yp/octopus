@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"crypto/md5"
@@ -20,14 +20,14 @@ func Sha1(raw []byte) string {
  *@func:标准base64编码
  */
 func Base64(raw []byte) string {
-	return base64.StdEncoding.EncodingToString(raw)
+	return base64.StdEncoding.EncodeToString(raw)
 }
 
 /*
  *@func: 标准base64 url编码
  */
 func Base64URL(raw []byte) string {
-	return base64.URLEncoding.EncodingToString(raw)
+	return base64.URLEncoding.EncodeToString(raw)
 }
 
 /*
