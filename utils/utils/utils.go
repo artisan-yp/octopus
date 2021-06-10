@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"crypto/hmac"
 	"crypto/md5"
 	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
+	"hash"
 	"unsafe"
 )
 
@@ -16,18 +20,50 @@ func Sha1(raw []byte) string {
 	return fmt.Sprintf("%x", sha1.Sum(raw))
 }
 
+func Sha256(raw []byte) string {
+	return fmt.Sprintf("%x", sha256.Sum256(raw))
+}
+
+func Sha512(raw []byte) string {
+	return fmt.Sprintf("%x", sha512.Sum512(raw))
+}
+
+func Hmac(h func() hash.Hash, key, raw []byte) string {
+	return fmt.Sprintf("%x", hmac.New(h, key).Sum(raw))
+}
+
+func HmacSha1(key, raw []byte) string {
+	return Hmac(sha1.New, key, raw)
+}
+
+func HmacSha256(key, raw []byte) string {
+	return Hmac(sha256.New, key, raw)
+}
+
+func HmacSha512(key, raw []byte) string {
+	return Hmac(sha512.New, key, raw)
+}
+
 /*
  *@func:标准base64编码
  */
-func Base64(raw []byte) string {
+func Base64Encode(raw []byte) string {
 	return base64.StdEncoding.EncodeToString(raw)
+}
+
+func Base64Decode(secret string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(secret)
 }
 
 /*
  *@func: 标准base64 url编码
  */
-func Base64URL(raw []byte) string {
+func Base64URLEncode(raw []byte) string {
 	return base64.URLEncoding.EncodeToString(raw)
+}
+
+func Base64URLDecode(secret string) ([]byte, error) {
+	return base64.URLEncoding.DecodeString(secret)
 }
 
 /*
