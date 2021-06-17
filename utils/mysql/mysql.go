@@ -16,6 +16,7 @@ const (
 	defaultMaxOpenConns    = 10
 	defaultMaxIdleConns    = 1
 	defaultMaxConnLifeTime = 1 * time.Minute
+	defaultMaxConnIdleTime = 10 * time.Second
 	mysqlInvokeMetric      = "mysql_invoke_total"
 	mysqlConnMetric        = "mysql_conn_status"
 )
@@ -31,6 +32,7 @@ type MysqlConnOpts struct {
 	maxOpenConns    int
 	maxIdleConns    int
 	maxConnLifeTime time.Duration
+	maxConnIdleTime time.Duration
 
 	// 监控项
 	monitor *prometheus.OpenPrometheus
@@ -104,6 +106,10 @@ func WithMaxIdleConns(n int) MysqlDriverOptFunc {
 
 func WithMaxConnLifeTime(t time.Duration) MysqlDriverOptFunc {
 	return func(o *MysqlConnOpts) { o.maxConnLifeTime = t }
+}
+
+func WithMaxConnIdleTime(t time.Duration) MysqlDriverOptFunc {
+	return func(o *MysqlConnOpts) { o.maxConnIdleTime = t }
 }
 
 func WithPrometheus(p int) MysqlDriverOptFunc {
@@ -205,6 +211,11 @@ func Register(info *MysqlDriverBasic, opts ...MysqlDriverOptFunc) (*MysqlControl
 	for _, o := range opts {
 		o(c.opts)
 	}
+
+	c.SetMaxIdleConns(c.opts.maxIdleConns)
+	c.SetMaxOpenConns(c.opts.maxOpenConns)
+	c.SetConnMaxLifetime(c.opts.maxConnLifeTime)
+	c.SetConnMaxIdleTime(c.opts.maxConnIdleTime)
 
 	MysqlConnPools.Controls[info.Id] = c
 
