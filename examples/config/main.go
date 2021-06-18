@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,20 @@ import (
 	"github.com/k8s-practice/octopus/config/parser/yamlparser"
 )
 
+type SqlConfig struct {
+	Driver   string `db:"driver"`
+	TenantId uint32 `db:"tenant_id"`
+	Host     string `db:"host"`
+	Port     uint16 `db:"port"`
+	User     string `db:"user"`
+	Password string `db:"password"`
+	DbName   string `db:"db_name"`
+}
+
+func (sc *SqlConfig) String() string {
+	return fmt.Sprintf("Driver=>%s, TenantId=>%d, Host=>%s, Port=>%d, User=>%s, Password=>%s, DbName=>%s", sc.Driver, sc.TenantId, sc.Host, sc.Port, sc.User, sc.Password, sc.DbName)
+}
+
 func init() {
 	flag.Parse()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -22,6 +37,13 @@ func init() {
 func main() {
 	cfg := loadConfig()
 	o := octopus.New().WithConfig(cfg)
+
+	var sqlcfg SqlConfig
+	if err := o.Load("database", &sqlcfg); err != nil {
+		log.Panic(err)
+	} else {
+		log.Println(sqlcfg.String())
+	}
 
 	var wrapper Wrapper
 	if err := o.Load("", &wrapper); err != nil {

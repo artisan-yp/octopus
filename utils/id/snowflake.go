@@ -2,7 +2,9 @@ package id
 
 import (
 	"errors"
+	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -25,7 +27,7 @@ type Snowflake struct {
 	sequence    uint16
 }
 
-type MachineId func() (uint16, error)
+type MachineId func() uint16
 
 type options struct {
 	startTime time.Time
@@ -71,15 +73,10 @@ func NewSnowflake(opt ...Option) (*Snowflake, error) {
 		snowflake.startTime = opts.startTime.UnixNano() / sequenceRefreshPeriod
 	}
 
-	var err error
 	if opts.machineId == nil {
-		snowflake.machineId, err = CIDRMachineId()
+		snowflake.machineId = CIDRMachineId()
 	} else {
-		snowflake.machineId, err = opts.machineId()
-	}
-
-	if err != nil {
-		return nil, err
+		snowflake.machineId = opts.machineId()
 	}
 
 	return snowflake, nil
@@ -144,17 +141,18 @@ func StartTime(t time.Time) Option {
 
 // CIDRMachineID base CIDR network prefix length.
 // CIDR prefix length must greater than 16.
-func CIDRMachineId() (uint16, error) {
-	return lower16BitPrivateIP()
-}
-
-func lower16BitPrivateIP() (uint16, error) {
-	ip, err := privateIPv4()
-	if err != nil {
-		return 0, err
+func CIDRMachineId() uint16 {
+	podIP := os.Getenv("POD_IP")
+	if ip := net.ParseIP(podIP); ip != nil {
+		return lower16BitPrivateIP(ip)
 	}
 
-	return uint16(ip[2])<<8 + uint16(ip[3]), nil
+	log.Fatalln("Env POD_IP error", podIP)
+	return 0
+}
+
+func lower16BitPrivateIP(ip net.IP) uint16 {
+	return uint16(ip[2])<<8 + uint16(ip[3])
 }
 
 func privateIPv4() (net.IP, error) {
