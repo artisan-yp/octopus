@@ -1,35 +1,49 @@
 package xlog
 
-type Logger interface {
-	Info(args ...interface{})
-	Infoln(args ...interface{})
-	Infof(format string, args ...interface{})
-
-	Warning(args ...interface{})
-	Warningln(args ...interface{})
-	Warningf(format string, args ...interface{})
-
-	Error(args ...interface{})
-	Errorln(args ...interface{})
-	Errorf(format string, args ...interface{})
-
-	Fatal(args ...interface{})
-	Fatalln(args ...interface{})
-	Fatalf(format string, args ...interface{})
-
-	// V reports whether verbosity level l is at least the requested verbose level.
-	V(l int) bool
-
-	WithAlsoToStderr(bool)
-	// sync buffer content.
-	Sync() error
+type Logger struct {
+	ctlr Ctlr
 }
 
-type DepthLogger interface {
-	Logger
+func (l *Logger) clone() *Logger {
+	copy := *l
+	return &copy
+}
 
-	InfoDepth(depth int, args ...interface{})
-	WarningDepth(depth int, args ...interface{})
-	ErrorDepth(depth int, args ...interface{})
-	FatalDepth(depth int, args ...interface{})
+func (l *Logger) check(lvl Level, msg string) *Entry {
+	const callerSkipOffset = 2
+	if lvl < DPanicLevel && !l.ctlr.Enabled(lvl) {
+		return nil
+	}
+
+	entry := Entry{}
+
+	return &entry
+}
+
+func (l *Logger) Debug(msg string, fields ...Field) {
+
+}
+
+func (l *Logger) Info(msg string, fields ...Field) {
+
+}
+
+func (l *Logger) Warn(msg string, fields ...Field) {
+
+}
+
+func (l *Logger) Error(msg string, fields ...Field) {
+
+}
+
+func (l *Logger) DPanic(msg string, fields ...Field) {
+
+}
+
+func (l *Logger) Panic(msg string, fields ...Field) {
+
+}
+
+func (l *Logger) Fatal(msg string, fields ...Field) {
+
 }
