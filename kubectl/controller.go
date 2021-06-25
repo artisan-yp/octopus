@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/k8s-practice/octopus/xlog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	r1 "k8s.io/apimachinery/pkg/runtime"
@@ -18,8 +17,9 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
+type logger = xlog
+
 var (
-	logger     = xlog.Component("kubectl")
 	kubeconfig = flag.String("kubeconfig", "", "kubernetes config file path.")
 	master     = flag.String("master", "", "kubernetes cluster(https://hostname:port).")
 )

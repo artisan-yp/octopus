@@ -8,10 +8,11 @@ import (
 	"sync"
 
 	"github.com/k8s-practice/octopus/kubectl"
-	"github.com/k8s-practice/octopus/xlog"
 	"google.golang.org/grpc/resolver"
 	"k8s.io/apimachinery/pkg/fields"
 )
+
+type logger = xlog
 
 const (
 	scheme = "kubeapi"
@@ -19,7 +20,6 @@ const (
 
 var (
 	errIllegalTarget = errors.New("kubeapi resolver: illegal target.")
-	logger           = xlog.Component("KubeapiResolver")
 )
 
 func init() {

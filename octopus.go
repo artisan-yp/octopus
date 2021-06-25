@@ -2,7 +2,6 @@ package octopus
 
 import (
 	"github.com/k8s-practice/octopus/config"
-	"github.com/k8s-practice/octopus/xlog"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -15,8 +14,6 @@ func New() *Octopus {
 
 // Brain is the brain of octopus.
 type Octopus struct {
-	logger xlog.DepthLogger
-
 	config config.Config
 
 	// frameInit is the framework initialize functions slice.
