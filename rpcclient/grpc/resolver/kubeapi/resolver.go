@@ -8,11 +8,12 @@ import (
 	"sync"
 
 	"github.com/k8s-practice/octopus/kubectl"
+	"github.com/k8s-practice/octopus/xlog"
 	"google.golang.org/grpc/resolver"
 	"k8s.io/apimachinery/pkg/fields"
 )
 
-type logger = xlog
+var logger = xlog.Default()
 
 const (
 	scheme = "kubeapi"

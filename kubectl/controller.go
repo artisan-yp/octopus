@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/k8s-practice/octopus/xlog"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	r1 "k8s.io/apimachinery/pkg/runtime"
@@ -17,7 +18,7 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
-type logger = xlog
+var logger = xlog.Default()
 
 var (
 	kubeconfig = flag.String("kubeconfig", "", "kubernetes config file path.")
@@ -173,21 +174,21 @@ func (c *Controller) sync(key string) error {
 		logger.Errorf("key: %s, error: %v\n", key, err)
 		return err
 	} else if !exists {
-		logger.Warningf("Source %s does not exist anymore\n", key)
+		logger.Warnf("Source %s does not exist anymore\n", key)
 	}
 
 	switch c.resource {
 	case RESOURCE_ENDPOINTS:
 		endpoints, ok := item.(*v1.Endpoints)
 		if !ok {
-			logger.Warningf("Resource is %s, but item is not %s.",
+			logger.Warnf("Resource is %s, but item is not %s.",
 				RESOURCE_ENDPOINTS, RESOURCE_ENDPOINTS)
 		}
 		return c.syncEndpoints(endpoints)
 	case RESOURCE_PODS:
 		pods, ok := item.(*v1.Pod)
 		if !ok {
-			logger.Warningf("Resource is %s, but item is not a %s.",
+			logger.Warnf("Resource is %s, but item is not a %s.",
 				RESOURCE_PODS, RESOURCE_PODS)
 		}
 		return c.syncPods(pods)
