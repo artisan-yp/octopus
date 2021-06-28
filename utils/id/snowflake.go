@@ -2,11 +2,12 @@ package id
 
 import (
 	"errors"
-	"log"
 	"net"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/k8s-practice/octopus/xlog"
 )
 
 // These constants are the bit lengths of Sonyflake ID parts.
@@ -147,7 +148,7 @@ func CIDRMachineId() uint16 {
 		return lower16BitPrivateIP(ip)
 	}
 
-	log.Fatalln("Env POD_IP error", podIP)
+	xlog.Fatalln("Env POD_IP error", podIP)
 	return 0
 }
 
