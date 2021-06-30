@@ -4,21 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
-
-	"github.com/k8s-practice/octopus/xlog"
 )
-
-var logger xlog.Logger
-
-func init() {
-	logger = xlog.Component("TaskPool")
-}
-
-func SetLoggerHandler(l xlog.DepthLogger) {
-	if l != nil {
-		logger = l
-	}
-}
 
 type Work interface {
 	Run() error
@@ -42,7 +28,6 @@ func (pool *Pool) RunWithTimeOut(work Work, t time.Duration) error {
 	case pool.work <- work:
 		return nil
 	case <-poolDelay.C:
-		logger.Infof("timeout ...")
 		return fmt.Errorf("too many work process, timeout...")
 	}
 }
@@ -55,8 +40,6 @@ func (pool *Pool) Shutdown() {
 }
 
 func New(maxGoroutines, chanSize int) *Pool {
-	logger.Infof("pool: goroutines %d, chanSize: %d", maxGoroutines, chanSize)
-
 	pool := Pool{
 		work: make(chan Work, chanSize),
 		sema: make(chan struct{}, 1),
